@@ -444,6 +444,151 @@ export interface WsfexParamItem {
 }
 
 // ============================================================
+// CAEA - Autorización Anticipada
+// ============================================================
+
+export interface CaeaSolicitarResult {
+  CAEA: string;
+  Periodo: string;
+  Orden: number;
+  FchVigDesde: string;
+  FchVigHasta: string;
+  FchTopeInf: string;
+  FchProceso: string;
+  Errors?: { Err: WsError | WsError[] };
+  Events?: { Evt: WsError | WsError[] };
+}
+
+export interface CaeaRegInfRequest {
+  /** Punto de venta */
+  PtoVta: number;
+  /** Tipo de comprobante */
+  CbteTipo: number;
+  /** Detalle de comprobantes con CAEA */
+  invoices: (InvoiceDetail & { CAEA: string })[];
+}
+
+export interface CaeaSinMovResult {
+  CAEA: string;
+  FchProceso: string;
+  Resultado: "A" | "R";
+  Errors?: { Err: WsError | WsError[] };
+  Events?: { Evt: WsError | WsError[] };
+}
+
+// ============================================================
+// Padrón - Consulta de contribuyentes
+// ============================================================
+
+export interface Contribuyente {
+  /** CUIT del contribuyente */
+  cuit: number;
+  /** Nombre completo o razón social */
+  nombre: string;
+  /** Tipo de persona: "FISICA" o "JURIDICA" */
+  tipoPersona: string;
+  /** Estado de la clave: "ACTIVO", etc. */
+  estadoClave: string;
+  /** Domicilio fiscal (disponible con A5) */
+  domicilioFiscal?: {
+    direccion?: string;
+    localidad?: string;
+    codPostal?: string;
+    tipoDomicilio?: string;
+  };
+  /** Impuestos/categorías del contribuyente */
+  impuestos?: {
+    id: number;
+    descripcion: string;
+    estado: string;
+  }[];
+  /** Respuesta cruda del WS */
+  raw: Record<string, any>;
+}
+
+// ============================================================
+// WSFEX - API Simplificada
+// ============================================================
+
+export interface ExpoLineItem {
+  /** Código del producto */
+  codigo: string;
+  /** Descripción */
+  descripcion: string;
+  /** Cantidad */
+  cantidad: number;
+  /** Unidad de medida (código AFIP) */
+  unidad: number;
+  /** Precio unitario */
+  precioUnitario: number;
+  /** Bonificación / descuento. Default: 0 */
+  bonificacion?: number;
+}
+
+export interface FacturarExpoOpts {
+  /** Punto de venta */
+  ptoVta: number;
+  /** Tipo de comprobante (CbteTipo.FACTURA_E, NOTA_CREDITO_E, NOTA_DEBITO_E) */
+  cbteTipo: number;
+  /** Tipo de exportación: 1=Bienes, 2=Servicios, 4=Otros */
+  tipoExpo: number;
+  /** Código de país destino (usar getPaisesExpo()) */
+  pais: number;
+  /** Datos del cliente */
+  cliente: {
+    nombre: string;
+    cuitPais: number;
+    domicilio: string;
+    idImpositivo: string;
+  };
+  /** Código de moneda */
+  moneda: string;
+  /** Cotización de la moneda */
+  cotizacion: number;
+  /** Items del comprobante */
+  items: ExpoLineItem[];
+  /** Forma de pago */
+  formaPago: string;
+  /** Idioma: 1=Español, 2=Inglés, 3=Portugués. Default: 1 */
+  idioma?: number;
+  /** Código Incoterms */
+  incoterms?: string;
+  /** Descripción Incoterms */
+  incotermsDes?: string;
+  /** Permiso de embarque existente: "S", "N". Default: "N" */
+  permisoExistente?: string;
+  /** Permisos de embarque */
+  permisos?: WsfexPermiso[];
+  /** Comprobantes asociados (para NC/ND de exportación) */
+  cbtesAsoc?: WsfexCmpAsoc[];
+  /** Observaciones comerciales */
+  obsComerciales?: string;
+  /** Observaciones */
+  obs?: string;
+  /** Fecha del comprobante (Date o string YYYYMMDD). Default: hoy */
+  fecha?: Date | string;
+}
+
+export interface FacturaExpoResult {
+  /** Si el comprobante fue aprobado */
+  aprobada: boolean;
+  /** CAE otorgado */
+  cae?: string;
+  /** Fecha de vencimiento del CAE */
+  caeVencimiento?: string;
+  /** Número de comprobante */
+  cbteNro: number;
+  /** Punto de venta */
+  ptoVta: number;
+  /** Tipo de comprobante */
+  cbteTipo: number;
+  /** Observaciones */
+  obs?: string;
+  /** Resultado crudo */
+  raw: WsfexAuthResult;
+}
+
+// ============================================================
 // API Simplificada - Tipos de entrada
 // ============================================================
 

@@ -16,6 +16,9 @@ import type {
   CotizacionResult,
   WsError,
   ArcaEvent,
+  CaeaSolicitarResult,
+  CaeaRegInfRequest,
+  CaeaSinMovResult,
 } from "./types.js";
 
 function toArray<T>(val: T | T[] | undefined): T[] {
@@ -193,6 +196,77 @@ export class WsfeClient {
     })) as WsfeResult & { RegXReq?: number };
     checkErrors(result);
     return result.RegXReq ?? 0;
+  }
+
+  // ============================================================
+  // CAEA - Autorización Anticipada
+  // ============================================================
+
+  async solicitarCAEA(
+    auth: WsfeAuth,
+    periodo: string,
+    orden: number
+  ): Promise<CaeaSolicitarResult> {
+    const result = (await this.call("FECAEASolicitar", {
+      Auth: auth,
+      Periodo: periodo,
+      Orden: orden,
+    })) as CaeaSolicitarResult;
+    checkErrors(result);
+    return result;
+  }
+
+  async consultarCAEA(
+    auth: WsfeAuth,
+    periodo: string,
+    orden: number
+  ): Promise<CaeaSolicitarResult> {
+    const result = (await this.call("FECAEAConsultar", {
+      Auth: auth,
+      Periodo: periodo,
+      Orden: orden,
+    })) as CaeaSolicitarResult;
+    checkErrors(result);
+    return result;
+  }
+
+  async registrarCAEA(
+    auth: WsfeAuth,
+    request: CaeaRegInfRequest
+  ): Promise<FECAESolicitarResult> {
+    const detRequests = request.invoices.map((inv) => {
+      const det = this.buildDetRequest(inv);
+      det.CAEA = inv.CAEA;
+      return det;
+    });
+
+    const result = (await this.call("FECAEARegInformativo", {
+      Auth: auth,
+      FeCAEARegInfReq: {
+        FeCabReq: {
+          CantReg: request.invoices.length,
+          PtoVta: request.PtoVta,
+          CbteTipo: request.CbteTipo,
+        },
+        FeDetReq: { FECAEADetRequest: detRequests },
+      },
+    })) as FECAESolicitarResult;
+    checkErrors(result);
+    return result;
+  }
+
+  async sinMovimientoCAEA(
+    auth: WsfeAuth,
+    caea: string,
+    ptoVta: number
+  ): Promise<CaeaSinMovResult> {
+    const result = (await this.call("FECAEASinMovimientoInformar", {
+      Auth: auth,
+      CAEA: caea,
+      PtoVta: ptoVta,
+    })) as CaeaSinMovResult;
+    checkErrors(result);
+    return result;
   }
 
   // ============================================================

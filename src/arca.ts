@@ -2,6 +2,7 @@ import { EventEmitter } from "node:events";
 import { WsaaClient } from "./wsaa.js";
 import { WsfeClient } from "./wsfe.js";
 import { WsfexClient } from "./wsfex.js";
+import { PadronClient } from "./padron.js";
 import {
   buildInvoiceDetail,
   parseFacturaResult,
@@ -33,6 +34,12 @@ import type {
   WsfexAuthResult,
   WsfexGetCmpResult,
   WsfexParamItem,
+  FacturarExpoOpts,
+  FacturaExpoResult,
+  CaeaSolicitarResult,
+  CaeaRegInfRequest,
+  CaeaSinMovResult,
+  Contribuyente,
 } from "./types.js";
 import { NOTA_CREDITO_MAP, NOTA_DEBITO_MAP } from "./constants.js";
 
@@ -40,6 +47,7 @@ export class Arca {
   private wsaa: WsaaClient;
   private wsfe: WsfeClient;
   private wsfex: WsfexClient;
+  private padron: PadronClient;
   private cuit: number;
   private production: boolean;
   private emitter = new EventEmitter();
@@ -71,6 +79,7 @@ export class Arca {
 
     this.wsfe = new WsfeClient(this.production, clientOpts);
     this.wsfex = new WsfexClient(this.production, clientOpts);
+    this.padron = new PadronClient(this.production, clientOpts);
   }
 
   // ============================================================
@@ -333,6 +342,141 @@ export class Arca {
     return this.wsfex.getCuitsPais(auth);
   }
 
+  /**
+   * Crea una factura de exportación con API simplificada.
+   * Obtiene automáticamente el ID y número de comprobante.
+   */
+  async facturarExpo(opts: FacturarExpoOpts): Promise<FacturaExpoResult> {
+    const auth = await this.getAuth("wsfex");
+    const [lastId, nextNum] = await Promise.all([
+      this.wsfex.getLastId(auth),
+      this.wsfex.getLastCmp(auth, opts.ptoVta, opts.cbteTipo).then((n) => n + 1),
+    ]);
+
+    const fecha = opts.fecha ? toDateString(opts.fecha) : toDateString(new Date());
+
+    const items = opts.items.map((item) => ({
+      Pro_codigo: item.codigo,
+      Pro_ds: item.descripcion,
+      Pro_qty: item.cantidad,
+      Pro_umed: item.unidad,
+      Pro_precio_uni: item.precioUnitario,
+      Pro_bonificacion: item.bonificacion ?? 0,
+      Pro_total_item:
+        Math.round(
+          (item.cantidad * item.precioUnitario - (item.bonificacion ?? 0)) * 100
+        ) / 100,
+    }));
+
+    const invoice: WsfexInvoice = {
+      Id: lastId + 1,
+      Cbte_Tipo: opts.cbteTipo,
+      Fecha_cbte: fecha,
+      Punto_vta: opts.ptoVta,
+      Cbte_nro: nextNum,
+      Tipo_expo: opts.tipoExpo,
+      Permiso_existente: opts.permisoExistente ?? "N",
+      Dst_cmp: opts.pais,
+      Cliente: opts.cliente.nombre,
+      Cuit_pais_cliente: opts.cliente.cuitPais,
+      Domicilio_cliente: opts.cliente.domicilio,
+      Id_impositivo: opts.cliente.idImpositivo,
+      Moneda_Id: opts.moneda,
+      Moneda_ctz: opts.cotizacion,
+      Idioma_cbte: opts.idioma ?? 1,
+      Forma_pago: opts.formaPago,
+      Items: items,
+    };
+
+    if (opts.incoterms) invoice.Incoterms = opts.incoterms;
+    if (opts.incotermsDes) invoice.Incoterms_Ds = opts.incotermsDes;
+    if (opts.obsComerciales) invoice.Obs_comerciales = opts.obsComerciales;
+    if (opts.obs) invoice.Obs = opts.obs;
+    if (opts.permisos) invoice.Permisos = opts.permisos;
+    if (opts.cbtesAsoc) invoice.Cmps_asoc = opts.cbtesAsoc;
+
+    const result = await this.wsfex.authorize(auth, invoice);
+    const authResult = result.FEXResultAuth;
+    const aprobada = authResult?.Resultado === "A";
+
+    return {
+      aprobada,
+      cae: aprobada ? authResult?.Cae : undefined,
+      caeVencimiento: aprobada ? authResult?.Fch_venc_Cae : undefined,
+      cbteNro: authResult?.Cbte_nro ?? nextNum,
+      ptoVta: authResult?.Punto_vta ?? opts.ptoVta,
+      cbteTipo: authResult?.Cbte_tipo ?? opts.cbteTipo,
+      obs: authResult?.Obs,
+      raw: result,
+    };
+  }
+
+  // ============================================================
+  // CAEA - Autorización Anticipada
+  // ============================================================
+
+  /**
+   * Solicita un CAEA para un período y quincena.
+   * @param periodo - Período en formato YYYYMM
+   * @param orden - 1 = primera quincena, 2 = segunda quincena
+   */
+  async solicitarCAEA(
+    periodo: string,
+    orden: number
+  ): Promise<CaeaSolicitarResult> {
+    const auth = await this.getAuth();
+    return this.wsfe.solicitarCAEA(auth, periodo, orden);
+  }
+
+  /** Consulta un CAEA previamente solicitado. */
+  async consultarCAEA(
+    periodo: string,
+    orden: number
+  ): Promise<CaeaSolicitarResult> {
+    const auth = await this.getAuth();
+    return this.wsfe.consultarCAEA(auth, periodo, orden);
+  }
+
+  /** Informa comprobantes emitidos con un CAEA. */
+  async registrarCAEA(
+    request: CaeaRegInfRequest
+  ): Promise<FECAESolicitarResult> {
+    const auth = await this.getAuth();
+    return this.wsfe.registrarCAEA(auth, request);
+  }
+
+  /** Informa que no hubo movimientos para un CAEA en un punto de venta. */
+  async sinMovimientoCAEA(
+    caea: string,
+    ptoVta: number
+  ): Promise<CaeaSinMovResult> {
+    const auth = await this.getAuth();
+    return this.wsfe.sinMovimientoCAEA(auth, caea, ptoVta);
+  }
+
+  // ============================================================
+  // Padrón - Consulta de contribuyentes
+  // ============================================================
+
+  /**
+   * Consulta datos de un contribuyente por CUIT (padrón A13 - básico).
+   * Retorna nombre, tipo de persona, estado, impuestos.
+   */
+  async consultarCuit(cuit: number): Promise<Contribuyente> {
+    const auth = await this.getAuth("ws_sr_padron_a13");
+    return this.padron.getPersonaA13(auth, cuit);
+  }
+
+  /**
+   * Consulta datos detallados de un contribuyente (padrón A5).
+   * Requiere autorización adicional en el certificado.
+   * Incluye domicilio fiscal, actividades, etc.
+   */
+  async consultarCuitDetalle(cuit: number): Promise<Contribuyente> {
+    const auth = await this.getAuth("ws_sr_padron_a5");
+    return this.padron.getPersonaA5(auth, cuit);
+  }
+
   // ============================================================
   // Estado y parámetros WSFE
   // ============================================================
@@ -473,5 +617,7 @@ export class Arca {
   clearAuthCache(): void {
     this.wsaa.clearTicket("wsfe");
     this.wsaa.clearTicket("wsfex");
+    this.wsaa.clearTicket("ws_sr_padron_a5");
+    this.wsaa.clearTicket("ws_sr_padron_a13");
   }
 }

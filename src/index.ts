@@ -50,6 +50,15 @@ export type {
   WsfexLastIdResult,
   WsfexGetCmpResult,
   WsfexParamItem,
+  FacturarExpoOpts,
+  ExpoLineItem,
+  FacturaExpoResult,
+  // CAEA
+  CaeaSolicitarResult,
+  CaeaRegInfRequest,
+  CaeaSinMovResult,
+  // Padrón
+  Contribuyente,
 } from "./types.js";
 
 // Constants / Enums
@@ -66,9 +75,12 @@ export {
   TributoTipo,
   NOTA_CREDITO_MAP,
   NOTA_DEBITO_MAP,
+  PADRON_A5_NAMESPACE,
+  PADRON_A13_NAMESPACE,
 } from "./constants.js";
 
 // Low-level clients (for advanced usage)
 export { WsaaClient } from "./wsaa.js";
 export { WsfeClient } from "./wsfe.js";
 export { WsfexClient } from "./wsfex.js";
+export { PadronClient } from "./padron.js";
