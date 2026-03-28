@@ -1,19 +1,12 @@
 /**
  * Ejemplo: Crear una Factura A por servicios
  *
- * Para facturas de servicios (Concepto 2 o 3), es obligatorio
- * incluir FchServDesde, FchServHasta y FchVtoPago.
+ * Para servicios, es obligatorio incluir el período y vencimiento de pago.
+ * Al proveer `servicio`, el concepto se auto-detecta como SERVICIOS.
  */
 
 import fs from "fs";
-import {
-  Arca,
-  CbteTipo,
-  Concepto,
-  DocTipo,
-  IvaTipo,
-  Moneda,
-} from "@ramiidv/arca-sdk";
+import { Arca, CbteTipo, DocTipo, IvaTipo } from "@ramiidv/arca-sdk";
 
 async function main() {
   const arca = new Arca({
@@ -23,38 +16,28 @@ async function main() {
     production: false,
   });
 
-  const today = Arca.formatDate(new Date());
-  const neto = 50000;
-  const iva = neto * 0.21;
-  const total = neto + iva;
+  const result = await arca.facturar({
+    ptoVta: 1,
+    cbteTipo: CbteTipo.FACTURA_A,
+    docTipo: DocTipo.CUIT,
+    docNro: 30712345678,
+    items: [
+      { neto: 50000, iva: IvaTipo.IVA_21 },
+      { neto: 10000, iva: IvaTipo.IVA_10_5 },
+    ],
+    servicio: {
+      desde: new Date("2026-03-01"),
+      hasta: new Date("2026-03-31"),
+      vtoPago: new Date("2026-04-15"),
+    },
+  });
 
-  // Usar crearFacturaAuto para obtener automáticamente el siguiente número
-  const result = await arca.crearFacturaAuto(
-    1, // punto de venta
-    CbteTipo.FACTURA_A,
-    {
-      Concepto: Concepto.SERVICIOS,
-      DocTipo: DocTipo.CUIT,
-      DocNro: 30712345678, // CUIT del cliente
-      CbteFch: today,
-      ImpTotal: total,
-      ImpTotConc: 0,
-      ImpNeto: neto,
-      ImpOpEx: 0,
-      ImpTrib: 0,
-      ImpIVA: iva,
-      MonId: Moneda.PESOS,
-      MonCotiz: 1,
-      // Obligatorio para servicios:
-      FchServDesde: "20260301",
-      FchServHasta: "20260331",
-      FchVtoPago: today,
-      Iva: [{ Id: IvaTipo.IVA_21, BaseImp: neto, Importe: iva }],
-    }
-  );
-
-  const { approved, cae } = Arca.extractCAE(result);
-  console.log(approved ? `CAE: ${cae}` : "Rechazada");
+  if (result.aprobada) {
+    console.log(`CAE: ${result.cae}`);
+    console.log(`Neto: $${result.importes.neto}`);
+    console.log(`IVA: $${result.importes.iva}`);
+    console.log(`Total: $${result.importes.total}`);
+  }
 }
 
 main().catch(console.error);

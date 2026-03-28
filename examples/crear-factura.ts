@@ -14,14 +14,7 @@
  */
 
 import fs from "fs";
-import {
-  Arca,
-  CbteTipo,
-  Concepto,
-  DocTipo,
-  IvaTipo,
-  Moneda,
-} from "@ramiidv/arca-sdk";
+import { Arca, CbteTipo, IvaTipo } from "@ramiidv/arca-sdk";
 
 async function main() {
   // 1. Inicializar el SDK
@@ -36,55 +29,24 @@ async function main() {
   const status = await arca.serverStatus();
   console.log("Estado servidores:", status);
 
-  // 3. Obtener el siguiente número de comprobante
-  const ptoVta = 1;
-  const cbteTipo = CbteTipo.FACTURA_B;
-  const nextNum = await arca.siguienteComprobante(ptoVta, cbteTipo);
-  console.log(`Siguiente comprobante: ${nextNum}`);
-
-  // 4. Crear la factura
-  const result = await arca.crearFactura({
-    PtoVta: ptoVta,
-    CbteTipo: cbteTipo,
-    invoices: [
-      {
-        Concepto: Concepto.PRODUCTOS,
-        DocTipo: DocTipo.CONSUMIDOR_FINAL,
-        DocNro: 0,
-        CbteDesde: nextNum,
-        CbteHasta: nextNum,
-        CbteFch: Arca.formatDate(new Date()),
-        ImpTotal: 121,
-        ImpTotConc: 0,
-        ImpNeto: 100,
-        ImpOpEx: 0,
-        ImpTrib: 0,
-        ImpIVA: 21,
-        MonId: Moneda.PESOS,
-        MonCotiz: 1,
-        Iva: [{ Id: IvaTipo.IVA_21, BaseImp: 100, Importe: 21 }],
-      },
-    ],
+  // 3. Crear la factura (número, fecha, totales e IVA se calculan automáticamente)
+  const result = await arca.facturar({
+    ptoVta: 1,
+    cbteTipo: CbteTipo.FACTURA_B,
+    items: [{ neto: 100, iva: IvaTipo.IVA_21 }],
   });
 
-  // 5. Procesar el resultado
-  const { approved, cae, caeFchVto, details } = Arca.extractCAE(result);
-
-  if (approved) {
-    console.log(`Factura aprobada!`);
-    console.log(`  CAE: ${cae}`);
-    console.log(`  Vencimiento CAE: ${caeFchVto}`);
+  // 4. Verificar resultado
+  if (result.aprobada) {
+    console.log("Factura aprobada!");
+    console.log(`  CAE: ${result.cae}`);
+    console.log(`  Vencimiento: ${result.caeVencimiento}`);
+    console.log(`  Comprobante #${result.cbteNro}`);
+    console.log(`  Total: $${result.importes.total}`);
   } else {
     console.error("Factura rechazada:");
-    for (const det of details) {
-      if (det.Observaciones) {
-        const obs = Array.isArray(det.Observaciones.Obs)
-          ? det.Observaciones.Obs
-          : [det.Observaciones.Obs];
-        for (const o of obs) {
-          console.error(`  [${o.Code}] ${o.Msg}`);
-        }
-      }
+    for (const obs of result.observaciones) {
+      console.error(`  [${obs.code}] ${obs.msg}`);
     }
   }
 }

@@ -25,17 +25,8 @@ import type {
   NotaDebitoOpts,
   FacturaResult,
   LineItem,
-  Importes,
 } from "./types.js";
-import {
-  CbteTipo,
-  Concepto,
-  DocTipo,
-  IvaTipo,
-  Moneda,
-  NOTA_CREDITO_MAP,
-  NOTA_DEBITO_MAP,
-} from "./constants.js";
+import { NOTA_CREDITO_MAP, NOTA_DEBITO_MAP } from "./constants.js";
 
 export class Arca {
   private wsaa: WsaaClient;

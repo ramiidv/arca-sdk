@@ -21,7 +21,12 @@ function toArray<T>(val: T | T[] | undefined): T[] {
   return Array.isArray(val) ? val : [val];
 }
 
-function checkErrors(result: { Errors?: { Err: WsError | WsError[] } }): void {
+interface WsfeResult {
+  Errors?: { Err: WsError | WsError[] };
+  ResultGet?: Record<string, unknown>;
+}
+
+function checkErrors(result: WsfeResult): void {
   if (result.Errors) {
     const errs = toArray(result.Errors.Err);
     throw new ArcaWSFEError(errs.map((e) => ({ code: e.Code, msg: e.Msg })));
@@ -139,126 +144,61 @@ export class WsfeClient {
   /**
    * Obtiene los tipos de comprobante disponibles.
    */
+  private async getParam<T>(
+    auth: WsfeAuth,
+    method: string,
+    itemKey: string
+  ): Promise<T[]> {
+    const result = (await wsfeSoapCall(
+      this.endpoint,
+      method,
+      { Auth: auth },
+      this.timeoutMs
+    )) as WsfeResult;
+    checkErrors(result);
+    return toArray(result.ResultGet?.[itemKey] as T | T[] | undefined);
+  }
+
   async getTiposComprobante(auth: WsfeAuth): Promise<ParamItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetTiposCbte",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.CbteTipo;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetTiposCbte", "CbteTipo");
   }
 
-  /**
-   * Obtiene los tipos de concepto disponibles.
-   */
+  /** Obtiene los tipos de concepto disponibles. */
   async getTiposConcepto(auth: WsfeAuth): Promise<ParamItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetTiposConcepto",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.ConceptoTipo;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetTiposConcepto", "ConceptoTipo");
   }
 
-  /**
-   * Obtiene los tipos de documento disponibles.
-   */
+  /** Obtiene los tipos de documento disponibles. */
   async getTiposDocumento(auth: WsfeAuth): Promise<ParamItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetTiposDoc",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.DocTipo;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetTiposDoc", "DocTipo");
   }
 
-  /**
-   * Obtiene los tipos de IVA disponibles.
-   */
+  /** Obtiene los tipos de IVA disponibles. */
   async getTiposIva(auth: WsfeAuth): Promise<ParamItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetTiposIva",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.IvaTipo;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetTiposIva", "IvaTipo");
   }
 
-  /**
-   * Obtiene las monedas disponibles.
-   */
+  /** Obtiene las monedas disponibles. */
   async getMonedas(auth: WsfeAuth): Promise<MonedaItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetTiposMonedas",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.Moneda;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetTiposMonedas", "Moneda");
   }
 
-  /**
-   * Obtiene los tipos de tributo disponibles.
-   */
+  /** Obtiene los tipos de tributo disponibles. */
   async getTiposTributo(auth: WsfeAuth): Promise<ParamItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetTiposTributos",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.TributoTipo;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetTiposTributos", "TributoTipo");
   }
 
-  /**
-   * Obtiene los tipos de opcionales disponibles.
-   */
+  /** Obtiene los tipos de opcionales disponibles. */
   async getTiposOpcional(auth: WsfeAuth): Promise<ParamItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetTiposOpcional",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.OpcionalTipo;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetTiposOpcional", "OpcionalTipo");
   }
 
-  /**
-   * Obtiene los puntos de venta habilitados.
-   */
+  /** Obtiene los puntos de venta habilitados. */
   async getPuntosVenta(auth: WsfeAuth): Promise<PtoVentaItem[]> {
-    const result = await wsfeSoapCall(
-      this.endpoint,
-      "FEParamGetPtosVenta",
-      { Auth: auth },
-      this.timeoutMs
-    );
-    checkErrors(result as any);
-    const items = (result as any).ResultGet?.PtoVenta;
-    return toArray(items);
+    return this.getParam(auth, "FEParamGetPtosVenta", "PtoVenta");
   }
 
-  /**
-   * Obtiene la cotización de una moneda.
-   */
+  /** Obtiene la cotización de una moneda. */
   async getCotizacion(
     auth: WsfeAuth,
     monedaId: string
@@ -266,29 +206,23 @@ export class WsfeClient {
     const result = (await wsfeSoapCall(
       this.endpoint,
       "FEParamGetCotizacion",
-      {
-        Auth: auth,
-        MonId: monedaId,
-      },
+      { Auth: auth, MonId: monedaId },
       this.timeoutMs
-    )) as CotizacionResult;
-
-    checkErrors(result as any);
+    )) as WsfeResult & CotizacionResult;
+    checkErrors(result);
     return result;
   }
 
-  /**
-   * Obtiene la cantidad máxima de registros por request de FECAESolicitar.
-   */
+  /** Obtiene la cantidad máxima de registros por request de FECAESolicitar. */
   async getCantMaxRegistros(auth: WsfeAuth): Promise<number> {
-    const result = await wsfeSoapCall(
+    const result = (await wsfeSoapCall(
       this.endpoint,
       "FECompTotXRequest",
       { Auth: auth },
       this.timeoutMs
-    );
-    checkErrors(result as any);
-    return (result as any).RegXReq ?? 0;
+    )) as WsfeResult & { RegXReq?: number };
+    checkErrors(result);
+    return result.RegXReq ?? 0;
   }
 
   // ============================================================
