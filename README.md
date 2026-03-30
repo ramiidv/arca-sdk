@@ -15,7 +15,7 @@ npm install @ramiidv/arca-sdk
 - Node.js >= 18
 - Certificado digital X.509 y clave privada de ARCA
   - **Testing**: generalo desde [WSASS Homologación](https://wsass-homo.afip.gob.ar/wsass/portal/main.aspx)
-  - **Producción**: generalo desde [Administrador de Certificados](https://auth.afip.gob.ar/contribuyente_/certificados/)
+  - **Producción**: generalo desde [Administración de Certificados Digitales](https://www.afip.gob.ar/ws/documentacion/certificados.asp) (requiere clave fiscal en [arca.gob.ar](https://arca.gob.ar))
 
 ## Uso rápido
 
