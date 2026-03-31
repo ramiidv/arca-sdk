@@ -30,7 +30,7 @@ export const WSFEX_NAMESPACE = "http://ar.gov.afip.dif.fexv1/";
 export const PADRON_A5_NAMESPACE = "http://a5.soap.ws.server.puc.sr/";
 export const PADRON_A13_NAMESPACE = "http://a13.soap.ws.server.puc.sr/";
 export const WSAA_NAMESPACE =
-  "http://wsaa.view.sua.dvadac.desein.afip.gov/LoginCMSService";
+  "http://wsaa.view.sua.dvadac.desein.afip.gov";
 
 // ============================================================
 // Tipos de Comprobante

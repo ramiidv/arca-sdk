@@ -109,6 +109,7 @@ const result = await arca.facturar({
   cbteTipo: CbteTipo.FACTURA_A,
   docTipo: DocTipo.CUIT,
   docNro: 30712345678,
+  condicionIva: CondicionIva.RESPONSABLE_INSCRIPTO,
   items: [
     { neto: 1000, iva: IvaTipo.IVA_21 },   // IVA: 210
     { neto: 500, iva: IvaTipo.IVA_10_5 },   // IVA: 52.5
@@ -163,6 +164,7 @@ const result = await arca.notaDebito({
   },
   docTipo: DocTipo.CUIT,
   docNro: 30712345678,
+  condicionIva: CondicionIva.RESPONSABLE_INSCRIPTO,
   items: [{ neto: 500, iva: IvaTipo.IVA_21 }],
 });
 ```
@@ -175,6 +177,7 @@ const result = await arca.facturar({
   cbteTipo: CbteTipo.FCE_FACTURA_A,
   docTipo: DocTipo.CUIT,
   docNro: 30712345678,
+  condicionIva: CondicionIva.RESPONSABLE_INSCRIPTO,
   items: [{ neto: 100000, iva: IvaTipo.IVA_21 }],
   opcionales: [{ Id: "2101", Valor: "0110012345678901234567" }], // CBU obligatorio
 });
@@ -291,6 +294,7 @@ const result = await arca.facturar({
   cbteTipo: CbteTipo.FACTURA_A,
   docTipo: DocTipo.CUIT,
   docNro: 30712345678,
+  condicionIva: CondicionIva.RESPONSABLE_INSCRIPTO,
   items: [{ neto: 1000, iva: IvaTipo.IVA_21 }],
   moneda: Moneda.DOLARES,
   cotizacion: cotiz.MonCotiz,

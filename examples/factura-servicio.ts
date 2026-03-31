@@ -6,7 +6,7 @@
  */
 
 import fs from "fs";
-import { Arca, CbteTipo, DocTipo, IvaTipo } from "@ramiidv/arca-sdk";
+import { Arca, CbteTipo, CondicionIva, DocTipo, IvaTipo } from "@ramiidv/arca-sdk";
 
 async function main() {
   const arca = new Arca({
@@ -21,6 +21,7 @@ async function main() {
     cbteTipo: CbteTipo.FACTURA_A,
     docTipo: DocTipo.CUIT,
     docNro: 30712345678,
+    condicionIva: CondicionIva.RESPONSABLE_INSCRIPTO,
     items: [
       { neto: 50000, iva: IvaTipo.IVA_21 },
       { neto: 10000, iva: IvaTipo.IVA_10_5 },
