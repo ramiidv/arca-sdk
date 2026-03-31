@@ -103,6 +103,8 @@ export class WsfexClient {
     ptoVta: number,
     cbteTipo: number
   ): Promise<number> {
+    // Per WSFEX manual section 2.4.2, Pto_venta and Cbte_Tipo are part of
+    // the Auth element, not siblings of it.
     const result = (await this.call("FEXGetLast_CMP", {
       Auth: {
         Token: auth.Token,

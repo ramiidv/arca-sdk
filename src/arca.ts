@@ -380,6 +380,12 @@ export class Arca {
         ) / 100,
     }));
 
+    const impTotal = Math.round(items.reduce((sum, i) => sum + i.Pro_total_item, 0) * 100) / 100;
+
+    // Permiso_existente must be '' for Tipo_expo 2 (Servicios) and 4 (Otros);
+    // 'S'/'N' are only valid for Tipo_expo 1 (Bienes/goods with shipping permits).
+    const permisoExistente = [2, 4].includes(opts.tipoExpo) ? "" : (opts.permisoExistente ?? "N");
+
     const invoice: WsfexInvoice = {
       Id: lastId + 1,
       Cbte_Tipo: opts.cbteTipo,
@@ -387,7 +393,7 @@ export class Arca {
       Punto_vta: opts.ptoVta,
       Cbte_nro: nextNum,
       Tipo_expo: opts.tipoExpo,
-      Permiso_existente: opts.permisoExistente ?? "N",
+      Permiso_existente: permisoExistente,
       Dst_cmp: opts.pais,
       Cliente: opts.cliente.nombre,
       Cuit_pais_cliente: opts.cliente.cuitPais,
@@ -396,6 +402,9 @@ export class Arca {
       Moneda_Id: opts.moneda,
       Moneda_ctz: opts.cotizacion,
       Idioma_cbte: opts.idioma ?? 1,
+      Imp_total: impTotal,
+      // Fecha_pago is required for Tipo_expo 2 (Servicios) and 4 (Otros).
+      Fecha_pago: [2, 4].includes(opts.tipoExpo) ? fecha : undefined,
       Forma_pago: opts.formaPago,
       Imp_total: items.reduce((sum, i) => sum + i.Pro_total_item, 0),
       Items: items,

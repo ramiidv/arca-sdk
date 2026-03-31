@@ -380,6 +380,10 @@ export interface WsfexInvoice {
   Obs?: string;
   /** Idioma: 1=Español, 2=Inglés, 3=Portugués */
   Idioma_cbte: number;
+  /** Importe total del comprobante. Debe coincidir con la suma de Pro_total_item de todos los items. */
+  Imp_total: number;
+  /** Fecha de pago (YYYYMMDD). Obligatorio para Tipo_expo 2 (Servicios) y 4 (Otros). */
+  Fecha_pago?: string;
   /** Forma de pago */
   Forma_pago: string;
   /** Código Incoterms */
