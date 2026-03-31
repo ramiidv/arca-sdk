@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.2.4
+
+- **Fix**: WSFEX `FEXGetLast_CMP` params inside Auth with correct field name `Pto_venta`
+- **Fix**: CAEA `solicitarCAEA`/`consultarCAEA` now parse `ResultGet` wrapper correctly
+- **Fix**: CAEA `registrarCAEA` uses correct response type `FECAEADetResponse`
+- **Fix**: `WsfexAuthResult.Obs` renamed to `Motivos_Obs` (matches WSDL)
+- **Fix**: `WsfexLastCmpResult` corrected to only `Cbte_nro` + `Cbte_fecha`
+- **Fix**: `WsfexInvoice.Imp_total` now required (WSDL `minOccurs=1`)
+- `WsfexParamItem` changed to `Record<string, string | number>` (field names vary by param type)
+- `ComprobanteAsociado.Cuit` type changed to `string | number`
+
+## 1.2.3
+
+- Add input validation: `validateFacturarOpts`, `validateFacturarExpoOpts`, `validateInvoiceRequest`
+- Add parameter caching (24h default, configurable via `paramCacheTTLMs`)
+- Add `clearParamCache()` method
+- Add JSDoc on all public methods
+- Add 48 unit tests with vitest
+- Add `test` and `test:watch` scripts
+
 ## 1.2.2
 
 - Extract shared `toArray()` utility (was duplicated in wsfe, wsfex, padron)
