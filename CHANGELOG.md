@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.2.1
+
+- Fix `CondicionIva` enum: code 8=PROVEEDOR_EXTERIOR, 9=CLIENTE_EXTERIOR, 10=IVA_LIBERADO (Ley 19.640), 16=MONOTRIBUTO_INDEPENDIENTE_PROMOVIDO
+- Add missing WSFEX fields: `Fecha_pago`, `CanMisMonExt`, `Opcionales`
+- Add `getCondicionesIva()` method (`FEParamGetCondicionIvaReceptor`)
+- Extract shared `toArray` utility, remove duplicated code
+- Move QR URL to constants, clean up internal exports
+
+## 1.2.0
+
+- **CRITICAL**: Add `CondicionIVAReceptorId` field (mandatory since April 1, 2026)
+  - New `CondicionIva` enum with all valid values
+  - Auto-inferred as `CONSUMIDOR_FINAL` (5) when `docTipo=99`
+- Add `CanMisMonExt` field for foreign currency operations (RG5616)
+- Fix padron namespaces: `puc.sr` instead of `padron.sr.afip.gov.ar`
+- Fix WSAA namespace: remove extra `/LoginCMSService` suffix
+- Add `Imp_total` to WSFEX `facturarExpo()` calculation
+
+## 1.1.5
+
+- Add `author`, `sideEffects: false`, `publishConfig.access: public` to package.json
+- Add CHANGELOG.md
+- Set homepage to [arca-sdk.dev](https://arca-sdk.dev/)
+- Add more npm keywords for discoverability
+- Add `clean` script, fix `repository.url` format
+
 ## 1.1.4
 
 - Fix: add `default` export for tsx/CJS bundler compatibility

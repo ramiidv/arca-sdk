@@ -531,6 +531,12 @@ Retornan `Contribuyente` con: `cuit`, `nombre`, `tipoPersona`, `estadoClave`, `d
 | `Arca.extractCAE(result)` | Extrae CAE del resultado raw |
 | `Arca.formatDate(date)` | Formatea `Date` a `YYYYMMDD` (timezone Argentina) |
 
+### Otros
+
+| Método | Descripción |
+| --- | --- |
+| `clearAuthCache()` | Invalida los tickets de acceso cacheados |
+
 ## Tipos de comprobante soportados
 
 | Enum | Código | Descripción |

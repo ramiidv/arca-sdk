@@ -32,6 +32,8 @@ export const PADRON_A13_NAMESPACE = "http://a13.soap.ws.server.puc.sr/";
 export const WSAA_NAMESPACE =
   "http://wsaa.view.sua.dvadac.desein.afip.gov";
 
+export const QR_URL = "https://www.afip.gob.ar/fe/qr/";
+
 // ============================================================
 // Tipos de Comprobante
 // ============================================================

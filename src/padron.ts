@@ -3,14 +3,9 @@ import {
   PADRON_A5_NAMESPACE,
   PADRON_A13_NAMESPACE,
 } from "./constants.js";
-import { afipSoapCall } from "./soap-client.js";
+import { afipSoapCall, toArray } from "./soap-client.js";
 import type { SoapOptions } from "./soap-client.js";
 import type { WsfeAuth, Contribuyente, ArcaEvent } from "./types.js";
-
-function toArray<T>(val: T | T[] | undefined): T[] {
-  if (val === undefined || val === null) return [];
-  return Array.isArray(val) ? val : [val];
-}
 
 function parsePersona(raw: Record<string, any>): Contribuyente {
   const persona = raw.personaReturn?.persona ?? raw.personaReturn ?? raw;

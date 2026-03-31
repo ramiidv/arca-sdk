@@ -41,7 +41,7 @@ import type {
   CaeaSinMovResult,
   Contribuyente,
 } from "./types.js";
-import { NOTA_CREDITO_MAP, NOTA_DEBITO_MAP } from "./constants.js";
+import { NOTA_CREDITO_MAP, NOTA_DEBITO_MAP, QR_URL } from "./constants.js";
 
 export class Arca {
   private wsaa: WsaaClient;
@@ -619,7 +619,7 @@ export class Arca {
       codAut: input.codAut,
     };
     const base64 = Buffer.from(JSON.stringify(payload)).toString("base64");
-    return `https://www.afip.gob.ar/fe/qr/?p=${base64}`;
+    return `${QR_URL}?p=${base64}`;
   }
 
   /** Extrae CAE del resultado raw de FECAESolicitar. */

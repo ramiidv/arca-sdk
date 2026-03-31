@@ -227,6 +227,10 @@ await arca.getMonedas();
 await arca.getTiposTributo();
 await arca.getTiposOpcional();
 await arca.getCantMaxRegistros();
+await arca.getCondicionesIva();          // valid CondicionIva values from ARCA
+
+// Utility
+arca.clearAuthCache();                   // invalidate cached auth tokens
 ```
 
 ## Error handling

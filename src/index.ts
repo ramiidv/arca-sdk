@@ -76,8 +76,6 @@ export {
   TributoTipo,
   NOTA_CREDITO_MAP,
   NOTA_DEBITO_MAP,
-  PADRON_A5_NAMESPACE,
-  PADRON_A13_NAMESPACE,
 } from "./constants.js";
 
 // Low-level clients (for advanced usage)

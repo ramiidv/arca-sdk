@@ -37,6 +37,15 @@ export function buildXml(obj: Record<string, any>): string {
   return xmlBuilder.build(obj);
 }
 
+/**
+ * Normaliza un valor que puede ser un item, un array, o undefined a un array.
+ * Útil para respuestas SOAP donde un solo elemento no viene wrapeado en array.
+ */
+export function toArray<T>(val: T | T[] | undefined): T[] {
+  if (val === undefined || val === null) return [];
+  return Array.isArray(val) ? val : [val];
+}
+
 export interface SoapOptions {
   soapAction?: string;
   timeoutMs?: number;
