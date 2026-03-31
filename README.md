@@ -1,5 +1,10 @@
 # arca-sdk
 
+[![CI](https://github.com/ramiidv/arca-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/ramiidv/arca-sdk/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@ramiidv/arca-sdk)](https://www.npmjs.com/package/@ramiidv/arca-sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Node >= 18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
+
 SDK en TypeScript para interactuar con los Web Services de **ARCA** (ex AFIP) — Facturación Electrónica Argentina.
 
 Soporta **todos los tipos de comprobante** de WSFEv1 y WSFEX: Facturas, Notas de Débito/Crédito, Recibos (A, B, C, E, M), Facturas de Crédito Electrónica MiPyME (FCE) y Facturas de Exportación.
