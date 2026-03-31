@@ -380,6 +380,16 @@ export class Arca {
         ) / 100,
     }));
 
+    const impTotal = Math.round(
+      items.reduce((sum, i) => sum + i.Pro_total_item, 0) * 100
+    ) / 100;
+
+    // Permiso_existente: "S"/"N" solo para Bienes (1). Servicios (2) y Otros (4) requieren "".
+    const esServicios = [2, 4].includes(opts.tipoExpo);
+    const permisoExistente = esServicios
+      ? ""
+      : (opts.permisoExistente ?? "N");
+
     const invoice: WsfexInvoice = {
       Id: lastId + 1,
       Cbte_Tipo: opts.cbteTipo,
@@ -387,7 +397,7 @@ export class Arca {
       Punto_vta: opts.ptoVta,
       Cbte_nro: nextNum,
       Tipo_expo: opts.tipoExpo,
-      Permiso_existente: opts.permisoExistente ?? "N",
+      Permiso_existente: permisoExistente,
       Dst_cmp: opts.pais,
       Cliente: opts.cliente.nombre,
       Cuit_pais_cliente: opts.cliente.cuitPais,
@@ -397,9 +407,16 @@ export class Arca {
       Moneda_ctz: opts.cotizacion,
       Idioma_cbte: opts.idioma ?? 1,
       Forma_pago: opts.formaPago,
-      Imp_total: items.reduce((sum, i) => sum + i.Pro_total_item, 0),
+      Imp_total: impTotal,
       Items: items,
     };
+
+    // Fecha_pago obligatorio para Servicios (2) y Otros (4)
+    if (opts.fechaPago) {
+      invoice.Fecha_pago = toDateString(opts.fechaPago);
+    } else if (esServicios) {
+      invoice.Fecha_pago = fecha;
+    }
 
     if (opts.incoterms) invoice.Incoterms = opts.incoterms;
     if (opts.incotermsDes) invoice.Incoterms_Ds = opts.incotermsDes;
@@ -407,8 +424,6 @@ export class Arca {
     if (opts.obs) invoice.Obs = opts.obs;
     if (opts.permisos) invoice.Permisos = opts.permisos;
     if (opts.cbtesAsoc) invoice.Cmps_asoc = opts.cbtesAsoc;
-    if (opts.fechaPago)
-      invoice.Fecha_pago = toDateString(opts.fechaPago);
     if (opts.canMisMonExt) invoice.CanMisMonExt = opts.canMisMonExt;
 
     const result = await this.wsfex.authorize(auth, invoice);
