@@ -37,6 +37,10 @@ async function main() {
   const cotizacion = await arca.getCotizacion(Moneda.DOLARES);
   console.log("Cotización USD:", cotizacion);
 
+  // Condiciones de IVA válidas para el receptor
+  const condicionesIva = await arca.getCondicionesIva();
+  console.log("Condiciones IVA:", condicionesIva);
+
   // Último comprobante autorizado
   const ultimoNro = await arca.ultimoComprobante(1, CbteTipo.FACTURA_B);
   console.log("Último Factura B en PtoVta 1:", ultimoNro);
